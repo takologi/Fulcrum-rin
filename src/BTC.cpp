@@ -138,9 +138,14 @@ namespace BTC
             if (err) *err = QString("Header verification failed for header at height %1: failed to deserialize").arg(height);
             return false;
         }
-        if (!prev.isEmpty() && Hash(prev) != QByteArray::fromRawData(reinterpret_cast<const char *>(curHdr.hashPrevBlock.begin()), int(curHdr.hashPrevBlock.width())) ) {
-            if (err) *err = QString("Header %1 'hashPrevBlock' does not match the contents of the previous block").arg(height);
-            return false;
+        if (!prev.isEmpty()) {
+            const auto prevHdr = Deserialize<bitcoin::CBlockHeader>(prev);
+            // GetHash() dispatches on currency unit (RIN -> RinHash, others -> SHA256d).
+            // The unit is always set correctly before HeaderVerifier is called.
+            if (prevHdr.GetHash() != curHdr.hashPrevBlock) {
+                if (err) *err = QString("Header %1 'hashPrevBlock' does not match the contents of the previous block").arg(height);
+                return false;
+            }
         }
         return true;
     }
@@ -188,13 +193,14 @@ namespace BTC
         return nameNetMap.value(name, Net::Invalid /* default if not found */);
     }
 
-    namespace { const QString coinNameBCH{"BCH"}, coinNameBTC{"BTC"}, coinNameLTC{"LTC"}; }
+    namespace { const QString coinNameBCH{"BCH"}, coinNameBTC{"BTC"}, coinNameLTC{"LTC"}, coinNameRIN{"RIN"}; }
     QString coinToName(Coin c) {
         QString ret; // for NRVO
         switch (c) {
         case Coin::BCH: ret = coinNameBCH; break;
         case Coin::BTC: ret = coinNameBTC; break;
         case Coin::LTC: ret = coinNameLTC; break;
+        case Coin::RIN: ret = coinNameRIN; break;
         case Coin::Unknown: break;
         }
         return ret;
@@ -203,6 +209,7 @@ namespace BTC
         if (s == coinNameBCH) return Coin::BCH;
         if (s == coinNameBTC) return Coin::BTC;
         if (s == coinNameLTC) return Coin::LTC;
+        if (s == coinNameRIN) return Coin::RIN;
         return Coin::Unknown;
     }
 

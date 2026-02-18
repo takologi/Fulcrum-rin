@@ -579,7 +579,19 @@ void DownloadBlocksTask::do_get(unsigned int bnum)
                     auto rawblock = Util::ParseHexFast(resp.result().toByteArray());
                     const auto header = rawblock.left(HEADER_SIZE); // we need a deep copy of this anyway so might as well take it now.
                     QByteArray chkHash;
-                    if (bool sizeOk = header.length() == HEADER_SIZE; sizeOk && (chkHash = BTC::HashRev(header)) == hash) {
+                    bool hashOk = false;
+                    if (header.length() == HEADER_SIZE) {
+                        try {
+                            // GetHash() dispatches on currency unit (RIN -> RinHash, others -> SHA256d).
+                            // The unit is always set correctly before block download begins.
+                            const auto cblockHeader = BTC::Deserialize<bitcoin::CBlockHeader>(header);
+                            chkHash = BTC::Hash2ByteArrayRev(cblockHeader.GetHash());
+                            hashOk = chkHash == hash;
+                        } catch (const std::exception &) {
+                            hashOk = false;
+                        }
+                    }
+                    if (hashOk) {
                         PreProcessedBlockPtr maybe_ppb; // either this is filled
                         Controller::RpaOnlyModeDataPtr maybe_rpaOnlyMode;  // or this is.. but not both!
                         try {
@@ -689,13 +701,14 @@ void DownloadBlocksTask::do_get(unsigned int bnum)
                             AGAIN();
                             ++q_ct;
                         }
-                    } else if (!sizeOk) {
+                    } else if (header.length() != HEADER_SIZE) {
                         Warning() << resp.method << ": at height " << bnum << " header not valid (decoded size: " << header.length() << ")";
                         errorCode = int(bnum);
                         errorMessage = QString("bad size for height %1").arg(bnum);
                         emit errored();
                     } else {
-                        Warning() << resp.method << ": at height " << bnum << " header not valid (expected hash: " << hash.toHex() << ", got hash: " << chkHash.toHex() << ")";
+                        Warning() << resp.method << ": at height " << bnum << " header not valid (expected hash: " << hash.toHex()
+                                  << ", got hash: " << chkHash.toHex() << ")";
                         errorCode = int(bnum);
                         errorMessage = QString("hash mismatch for height %1").arg(bnum);
                         emit errored();

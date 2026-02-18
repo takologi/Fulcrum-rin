@@ -76,6 +76,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # I added some Qt-specific calls to stuff inside the bitcoin:: namespace.
 # This enables those functions.
 DEFINES += USE_QT_IN_BITCOIN
+DEFINES += BLAKE3_NO_SSE2 BLAKE3_NO_SSE41 BLAKE3_NO_AVX2 BLAKE3_NO_AVX512
 
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -299,9 +300,11 @@ contains(CONFIG, config_builtin_bswap) {
     }
     linux {
         LIBS += -lrocksdb -lz -lbz2
+        LIBS += -largon2
     }
     freebsd {
         LIBS += -lrocksdb -lz -lbz2
+        LIBS += -largon2
     }
     win32 {
         LIBS += -lrocksdb
@@ -473,11 +476,16 @@ SOURCES += \
     bitcoin/crypto/ctaes/ctaes.c \
     bitcoin/crypto/hmac_sha256.cpp \
     bitcoin/crypto/hmac_sha512.cpp \
+    bitcoin/crypto/rinhash.cpp \
     bitcoin/crypto/ripemd160.cpp \
+    bitcoin/crypto/sha3.cpp \
     bitcoin/crypto/sha1.cpp \
     bitcoin/crypto/sha256.cpp \
     bitcoin/crypto/sha256_sse4.cpp \
     bitcoin/crypto/sha512.cpp \
+    bitcoin/crypto/blake3/blake3.c \
+    bitcoin/crypto/blake3/blake3_dispatch.c \
+    bitcoin/crypto/blake3/blake3_portable.c \
     bitcoin/hash.cpp \
     bitcoin/interpreter.cpp \
     bitcoin/pubkey.cpp \
@@ -508,10 +516,14 @@ HEADERS += \
     bitcoin/crypto/ctaes/ctaes.h \
     bitcoin/crypto/hmac_sha256.h \
     bitcoin/crypto/hmac_sha512.h \
+    bitcoin/crypto/rinhash.h \
     bitcoin/crypto/ripemd160.h \
+    bitcoin/crypto/sha3.h \
     bitcoin/crypto/sha1.h \
     bitcoin/crypto/sha256.h \
     bitcoin/crypto/sha512.h \
+    bitcoin/crypto/blake3/blake3.h \
+    bitcoin/crypto/blake3/blake3_impl.h \
     bitcoin/hash.h \
     bitcoin/heapoptional.h \
     bitcoin/interpreter.h \
