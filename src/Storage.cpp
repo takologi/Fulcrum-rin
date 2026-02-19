@@ -33,6 +33,8 @@
 #include "Util.h"
 #include "VarInt.h"
 
+#include "bitcoin/amount.h"
+
 #include "bitcoin/hash.h"
 
 #if __has_include(<rocksdb/advanced_cache.h>)
@@ -1433,8 +1435,12 @@ void Storage::startup()
             const Meta &m_db = *opt;
             p->meta = m_db;
             Debug () << "Read meta from db ok";
-            if (!p->meta.coin.isEmpty())
+            if (!p->meta.coin.isEmpty()) {
                 Log() << "Coin: " << p->meta.coin;
+                // Set the currency unit now so that GetHash() dispatches correctly
+                // during header verification below (before Controller sets it).
+                bitcoin::SetCurrencyUnit(p->meta.coin.toStdString());
+            }
             if (!p->meta.chain.isEmpty())
                 Log() << "Chain: " << p->meta.chain;
         } else {
