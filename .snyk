@@ -1,0 +1,46 @@
+# Snyk (.snyk) policy file — Fulcrum-RIN
+# https://docs.snyk.io/snyk-cli/test-for-vulnerabilities/the-.snyk-file
+version: v1.25.0
+
+language-settings:
+  cpp:
+    # Tell Snyk where the C++ source tree lives.
+    unmanaged: true
+
+# ---------------------------------------------------------------------------
+# Ignored / suppressed findings
+#
+# Format:
+#   <vuln-id>:
+#     - <reason-or-target>:
+#         reason: '<why this is a false-positive or not exploitable>'
+#         expires: '<YYYY-MM-DD>'  # optional expiry
+#
+# Add entries here after reviewing a Snyk report and confirming that a
+# finding is not exploitable in this codebase.
+# ---------------------------------------------------------------------------
+ignore:
+  # RocksDB bundled static library — Fulcrum-RIN is a *server* daemon that
+  # reads its own database files; it does not open attacker-controlled RDB
+  # files.  RocksDB memory-corruption CVEs that require specially crafted
+  # .sst files are not reachable via the Electrum-protocol attack surface.
+  #
+  # Example (fill in actual CVE IDs after running `snyk test`):
+  # SNYK-UNMANAGED-ROCKSDB-XXXXXXXX:
+  #   - '*':
+  #       reason: >
+  #         Fulcrum only accesses its own managed RocksDB data directory.
+  #         No attacker-controlled SST/manifest files are opened.
+  #       expires: '2026-12-31'
+
+  # secp256k1 — used for address-validation only (no key generation or
+  # signing happens inside Fulcrum).  Side-channel CVEs in signing paths
+  # are out of scope.
+  #
+  # SNYK-UNMANAGED-SECP256K1-XXXXXXXX:
+  #   - '*':
+  #       reason: >
+  #         Fulcrum-RIN uses secp256k1 exclusively for public-key script
+  #         validation.  No secret keys are held or generated at runtime.
+
+patch: {}

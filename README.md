@@ -1,14 +1,17 @@
-# ![Image FulcrumLogo](https://raw.githubusercontent.com/cculianu/Fulcrum-art/master/F-circle2_grn_64.png) Fulcrum
+# ![Image FulcrumLogo](https://raw.githubusercontent.com/cculianu/Fulcrum-art/master/F-circle2_grn_64.png) Fulcrum-RIN
 
-[![Docker Build](https://github.com/cculianu/Fulcrum/actions/workflows/publish.yml/badge.svg)](https://github.com/cculianu/Fulcrum/actions/workflows/publish.yml)
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/jonny/BitcoinCash/package/fulcrum/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/jonny/BitcoinCash/package/fulcrum/)
+> **This is [Fulcrum-RIN](https://github.com/takologi/Fulcrum-rin)** — a fork of
+> [Fulcrum](https://github.com/cculianu/Fulcrum) with added support for
+> **Rincoin (RIN)**, including the RinHash proof-of-work algorithm
+> (BLAKE3 → Argon2d → SHA3-256).
 
-A fast & nimble SPV server for Bitcoin Cash, Bitcoin BTC, and Litecoin. 
+A fast & nimble SPV server for Bitcoin Cash, Bitcoin BTC, Litecoin, and **Rincoin (RIN)**.
 
-For more information, visit [The Official Fulcrum Website™️](https://fulcrumserver.org/).
+For more information on the upstream project, visit [The Official Fulcrum Website™️](https://fulcrumserver.org/).
 
 #### Copyright
-(C) 2019-2025 Calin Culianu <calin.culianu@gmail.com>
+(C) 2019-2025 Calin Culianu <calin.culianu@gmail.com>\
+Rincoin fork maintained by the Rincoin project
 
 #### License:
 GPLv3. See the included `LICENSE.txt` file or [visit gnu.org and read the license](https://www.gnu.org/licenses/gpl-3.0.html).
@@ -20,7 +23,7 @@ GPLv3. See the included `LICENSE.txt` file or [visit gnu.org and read the licens
 - *Fast:* Written in 100% modern `C++20` using multi-threaded and asynchronous programming techniques.
 - *A drop-in replacement for ElectrumX:* Fulcrum is 100% protocol-level compatible with the [Electrum Cash 1.6 protocol](https://electrum-cash-protocol.readthedocs.io/en/latest/). Existing server admins should feel right at home with this software since installation and management of it is nearly identical to an ElectrumX server.
 - *Cross-platform:* While this codebase was mainly developed and tested on MacOS, Windows and Linux, it should theoretically work on any modern OS (such as *BSD) that has Qt5 or Qt6 Networking available.
-- ***NEW!*** *Triple-coin:* Supports BCH, BTC and LTC.
+- ***NEW!*** *Quad-coin:* Supports BCH, BTC, LTC, and **RIN** (Rincoin).
 
 ### Requirements
 
@@ -31,6 +34,12 @@ GPLv3. See the included `LICENSE.txt` file or [visit gnu.org and read the licens
       - Note: Bitcoin Core and/or Bitcoin Knots >= v28.0.0 are recommended for full Electrum Protocol v1.6 support.
     - *For **LTC***: Litecoin Core v0.17.0 or later.  No other full nodes are supported by this software for LTC.
       - If using Litcoin Core v0.21.2 or above, your daemon is serializing data using mweb extensions. While Fulcrum understands this serialization format, your Electrum-LTC clients may not. You can run `litecoind` with `-rpcserialversion=1` to have your daemon return transactions in pre-mweb format which is understood by most Electrum-LTC clients.
+    - *For **RIN***: **Rincoin Core** (rincoind).  This fork adds native support for
+      the RinHash proof-of-work algorithm.  Set `coin = RIN` in your Fulcrum
+      config file (see [doc/fulcrum-rin.conf](doc/fulcrum-rin.conf)).
+      - Rincoin mainnet RPC port: **9556** (not 8332).
+      - ZMQ: add `zmqpubhashblock=tcp://127.0.0.1:9557` to `rincoin.conf` for
+        low-latency block notifications.
     - The node must have txindex enabled e.g. `txindex=1`.
     - The node must not be a pruning node.
     - *Optional*: For best results, enable zmq for the "hasblock" topic using e.g. `zmqpubhashblock=tcp://0.0.0.0:8433` in your `bitcoin.conf` file (zmq is only available on: Core, BCHN, BU 1.9.1+, or Litecoin Core).
@@ -44,10 +53,31 @@ GPLv3. See the included `LICENSE.txt` file or [visit gnu.org and read the licens
 
 ### Quickstart
 
-1. Download a [pre-built static binary](https://github.com/cculianu/Fulcrum/releases).
-2. Verify that the binary runs on your system by executing the binary with `./Fulcrum -h` to see the CLI options.
-3. Setup a configuration file and to point Fulcrum to your bitcoind JSON-RPC server, specify listening ports, TLS certificates, etc.  See: [doc/fulcrum-example-config.conf](https://github.com/cculianu/Fulcrum/blob/master/doc/fulcrum-example-config.conf) and/or [doc/fulcrum-quick-config.conf](https://github.com/cculianu/Fulcrum/blob/master/doc/fulcrum-quick-config.conf)
+1. Clone and build **Fulcrum-RIN** from [github.com/takologi/Fulcrum-rin](https://github.com/takologi/Fulcrum-rin) (see *How To Compile* below), or use a pre-built binary if available.
+2. Verify that the binary runs on your system: `./Fulcrum -h`.
+3. Create a configuration file pointing Fulcrum to your `rincoind` JSON-RPC server.  Use [doc/fulcrum-rin.conf](doc/fulcrum-rin.conf) as your starting point.
 4. Also see this section below on [Running Fulcrum](#running-fulcrum).
+
+#### Rincoin Quickstart (minimal config)
+
+```ini
+# fulcrum-rin.conf — minimum viable Rincoin setup
+datadir   = /var/lib/fulcrum-rin/mainnet
+bitcoind  = 127.0.0.1:9556   # rincoind default RPC port
+rpcuser   = rinuser
+rpcpassword = your_rpcpassword
+coin      = RIN
+tcp       = 0.0.0.0:50001
+ssl       = 0.0.0.0:50002
+cert      = /etc/fulcrum-rin/server-cert.pem
+key       = /etc/fulcrum-rin/server-key.pem
+```
+
+```
+./Fulcrum fulcrum-rin.conf
+```
+
+See [doc/fulcrum-rin.conf](doc/fulcrum-rin.conf) for a fully annotated Rincoin example configuration.
 
 ### How To Compile
 

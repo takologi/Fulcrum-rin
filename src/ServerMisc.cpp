@@ -4,5 +4,5 @@
 namespace ServerMisc
 {
     const QString AppVersion(VERSION);
-    const QString AppSubVersion = QString("%1 %2").arg(APPNAME, VERSION);
+    const QString AppSubVersion = QString("%1 %2").arg(FORK_NAME, VERSION);
 }

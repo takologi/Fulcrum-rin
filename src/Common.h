@@ -56,6 +56,9 @@ struct InternalError : Exception { using Exception::Exception; ~InternalError() 
 struct BadArgs : Exception { using Exception::Exception; ~BadArgs() override; };
 
 #define APPNAME "Fulcrum"
+/// Fork identifier appended to the admin banner and startup log.
+/// Keeps APPNAME unchanged so Electrum protocol strings stay compatible.
+#define FORK_NAME "Fulcrum-RIN"
 #define VERSION "2.1.0"
 #ifdef QT_DEBUG
 inline constexpr bool isReleaseBuild() { return false; }
