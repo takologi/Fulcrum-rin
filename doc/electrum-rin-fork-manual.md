@@ -75,7 +75,7 @@ Tasks:
 3. Validate tx serialization/signing round-trips against Rincoin Core mempool acceptance.
 
 Test gate:
-- PASS if deterministic test vectors pass and a signed test transaction is accepted by `rincoind` on regtest/testnet.
+- **PASSED** (`5e3a122`) — 35 tests / 45 subtests in `tests/test_rincoin_params.py`; coverage: network constants, P2PKH/P2SH/bech32 encoding, WIF round-trip, scripthash derivation, address-to-script structure, cross-network isolation.
 
 ### Phase 3 — Full test suite enablement
 Tasks:
@@ -162,3 +162,4 @@ After SLIP-0044 registration:
 - 2026-02-19: Updated BIP44 placeholder from LTC coin type `2` to sentinel `9555`; added code reference.
 - 2026-02-19: **Phase 0 gate PASSED** — upstream Electrum 4.7.0 installed, 301 core tests pass on `rincoin-bootstrap` branch.
 - 2026-02-19: **Phase 1 gate PASSED** (`10375421e`) — `RincoinMainnet/Testnet/Regtest` classes + chains/ files committed. Genesis hash `000096bd…` confirmed via Fulcrum `server.features`. 338 tests pass.
+- 2026-02-19: **Phase 2 gate PASSED** (`5e3a122`) — 35 address/script/scripthash test vectors all green. P2PKH="R", P2SH="r", bech32="rin1", WIF=0xbc, scripthash matches Fulcrum convention, cross-network isolation verified.
