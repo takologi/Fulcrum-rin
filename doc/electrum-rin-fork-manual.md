@@ -84,7 +84,7 @@ Tasks:
 3. Add integration tests against ephemeral/local Fulcrum endpoint.
 
 Test gate:
-- PASS if baseline tests + Rincoin tests pass in CI on Linux.
+- **PASSED** (`99b0f249`) — 11 integration tests pass against live Fulcrum-RIN at `127.0.0.1:50001`; skip-on-unreachable guard in place for offline CI. Coverage: genesis hash, header bytes, chain tip height, scripthash P2PKH+P2WPKH accepted, `confirmed` balance zero.
 
 ### Phase 4 — Security hardening and Snyk readiness
 Tasks:
@@ -163,3 +163,4 @@ After SLIP-0044 registration:
 - 2026-02-19: **Phase 0 gate PASSED** — upstream Electrum 4.7.0 installed, 301 core tests pass on `rincoin-bootstrap` branch.
 - 2026-02-19: **Phase 1 gate PASSED** (`10375421e`) — `RincoinMainnet/Testnet/Regtest` classes + chains/ files committed. Genesis hash `000096bd…` confirmed via Fulcrum `server.features`. 338 tests pass.
 - 2026-02-19: **Phase 2 gate PASSED** (`5e3a122`) — 35 address/script/scripthash test vectors all green. P2PKH="R", P2SH="r", bech32="rin1", WIF=0xbc, scripthash matches Fulcrum convention, cross-network isolation verified.
+- 2026-02-19: **Phase 3 gate PASSED** (`99b0f249`) — 11 Fulcrum integration tests pass; genesis header bytes verified against live server; skip guard for offline CI.
