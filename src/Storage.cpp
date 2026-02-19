@@ -2591,7 +2591,7 @@ auto Storage::latestTip(Header *hdrOut) const -> std::pair<int, HeaderHash> {
         if (hdrOut) hdrOut->clear();
     } else {
         // .ret now has the actual header but we want the hash
-        ret.second = BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(ret.second).GetHash());
+        ret.second = BTC::HeaderHash(ret.second);
     }
     return ret;
 }
@@ -2675,7 +2675,7 @@ auto Storage::headerForHeight(BlockHeight height, QString *err, HeaderHash *hash
         if (hashOut) *hashOut = tipHash;
     } else if (int(height) < tipHeight && int(height) >= 0) {
         ret = headerForHeight_nolock(height, err);
-        if (ret && hashOut) *hashOut = BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(*ret).GetHash());
+        if (ret && hashOut) *hashOut = BTC::HeaderHash(*ret);
     } else if (err) { *err = QStringLiteral("Height %1 is out of range").arg(height); }
     return ret;
 }
@@ -2753,7 +2753,7 @@ void Storage::loadCheckHeadersInDB()
 
             auto [verif, lock] = headerVerifier();
             // set genesis hash -- use GetHash() so RIN uses RinHash, not SHA256d
-            p->genesisHash = BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(hVec.front()).GetHash());
+            p->genesisHash = BTC::HeaderHash(hVec.front());
 
             err.clear();
             // read db
@@ -3870,7 +3870,7 @@ void Storage::addBlock(PreProcessedBlockPtr ppb, bool saveUndo, unsigned nReserv
             // save the last of the undo info, if in saveUndo mode
             if (undo) {
                 const Tic t0;
-                undo->hash = BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(rawHeader).GetHash());
+                undo->hash = BTC::HeaderHash(rawHeader);
                 undo->scriptHashes = Util::keySet<decltype (undo->scriptHashes)>(ppb->hashXAggregated);
                 static const QString errPrefix("Error saving undo info to undo db");
 
@@ -3921,7 +3921,7 @@ void Storage::addBlock(PreProcessedBlockPtr ppb, bool saveUndo, unsigned nReserv
 
             if (ppb->height == 0) [[unlikely]] {
                 // update genesis hash -- use GetHash() so RIN uses RinHash, not SHA256d
-                p->genesisHash = BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(rawHeader).GetHash()); // guarded by p->headerVerifierLock
+                p->genesisHash = BTC::HeaderHash(rawHeader); // guarded by p->headerVerifierLock
             }
 
             saveUtxoCt(batch);
@@ -4066,7 +4066,7 @@ BlockHeight Storage::undoLatestBlock(bool notifySubs)
         auto & undo = *undoOpt; // non-const because we swap out its scripthashes potentially below if notifySubs == true
 
         // ensure undo info sanity
-        if (!undo.isValid() || undo.height != unsigned(tip) || undo.hash != BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(header).GetHash())
+        if (!undo.isValid() || undo.height != unsigned(tip) || undo.hash != BTC::HeaderHash(header)
             || prevHeight+1 >= p->blkInfos.size() || p->blkInfos.empty() || p->blkInfos.back() != undo.blkInfo)
             throw DatabaseFormatError(QString("The undo information for height %1 was successfully retrieved from the "
                                               "database, but it failed an internal consistency check.").arg(tip));
@@ -4896,7 +4896,7 @@ auto Storage::getFirstUse(const HashX & hashX) const -> std::optional<FirstUse>
             const BlockHeight blockHeight = heightForTxNum(txNum).value(); // may throw
             return FirstUse(hashForTxNum(txNum).value(), /* .txHash */
                             blockHeight, /* .height */
-                            BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(headerForHeight(blockHeight).value()).GetHash()) /* .blockHash */);
+                            BTC::HeaderHash(headerForHeight(blockHeight).value()) /* .blockHash */);
         } else {
             // try unconfirmed (mempool)
             auto [mempool, lock] = this->mempool();

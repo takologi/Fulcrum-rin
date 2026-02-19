@@ -233,7 +233,7 @@ namespace {
             isBU = subversion.startsWith("/BCH Unlimited:");
             isBCHN = subversion.startsWith("/Bitcoin Cash Node:");
             isRIN = subversion.startsWith("/RincoinCore:");
-            isLTC = subversion.startsWith("/LitecoinCore:") || isRIN;
+            isLTC = subversion.startsWith("/LitecoinCore:"); // do NOT include isRIN here; Rincoin is tracked independently
             isFlowee = subversion.startsWith("/Flowee:");
             // regular bitcoind, "version" is reliable and always the same format
             version = Version::BitcoinDCompact(val);
@@ -250,7 +250,7 @@ namespace {
         // at the time of this writing, released BU is 1.9.0 and it definitely lacks the dsproof RPC
         if (isBU && version < Version{1, 9, 1})
             return true;
-        if (isCore || isLTC) // core and/or ltc will definitely never add this feature
+        if (isCore || isLTC || isRIN) // core, ltc, and rin will definitely never add this feature
             return true;
         // for all other remote daemons, return false so that calling code will probe.
         return false;

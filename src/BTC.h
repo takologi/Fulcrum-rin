@@ -188,6 +188,17 @@ namespace BTC
         return ret;
     }
 
+    /// Deserialize an 80-byte raw block header from a QByteArray and return its
+    /// proof-of-work hash as a reversed (big-endian) QByteArray, using the
+    /// coin-specific algorithm (RinHash for RIN, SHA256d for everything else).
+    /// This is the Electrum/Fulcrum "scripthash-style" hash: what the protocol
+    /// calls the block hash.  Use this instead of repeating the verbose
+    ///   BTC::Hash2ByteArrayRev(BTC::Deserialize<bitcoin::CBlockHeader>(hdr).GetHash())
+    /// pattern at each call site.
+    inline QByteArray HeaderHash(const QByteArray &rawHeader) {
+        return Hash2ByteArrayRev(Deserialize<bitcoin::CBlockHeader>(rawHeader).GetHash());
+    }
+
     /// returns true iff cscript is OP_RETURN, false otherwise
     inline bool IsOpReturn(const bitcoin::CScript &cs) {
         return cs.size() > 0 && *cs.begin() == bitcoin::opcodetype::OP_RETURN;

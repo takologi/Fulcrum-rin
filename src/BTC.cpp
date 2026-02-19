@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "Util.h"
 
+#include "bitcoin/amount.h"
 #include "bitcoin/crypto/endian.h"
 #include "bitcoin/crypto/sha256.h"
 #include "bitcoin/hash.h"
@@ -278,5 +279,75 @@ namespace {
     }
 
     auto t1 = App::registerTest("btcmisc", test);
+
+    // ---- RinHash block header hash test vectors --------------------------------
+    // Vectors derived from the live Rincoin mainnet chain, cross-checked against
+    // Fulcrum-RIN server.features and blockchain.block.headers responses.
+    //
+    // The HeaderHash() helper is used here — it wraps the full
+    //   BTC::Hash2ByteArrayRev(BTC::Deserialize<CBlockHeader>(hdr).GetHash())
+    // pattern and is the canonical call site going forward.
+    void testRinHash()
+    {
+        using Util::ParseHexFast;
+
+        // GetHash() dispatches on GetCurrencyUnit(); set it to "RIN" for the
+        // duration of this test so CBlockHeader::GetHash() calls RinHash().
+        const auto savedUnit = bitcoin::GetCurrencyUnit();
+        const struct CurrGuard {
+            const std::string &saved;
+            ~CurrGuard() { bitcoin::SetCurrencyUnit(saved); }
+        } guard{savedUnit};
+        bitcoin::SetCurrencyUnit("RIN");
+
+        // ---- Block 0 (genesis) --------------------------------------------------
+        // Raw 80-byte header from blockchain.block.header(0)
+        const QByteArray genesis = ParseHexFast(
+            "0100000000000000000000000000000000000000000000000000000000000000"
+            "00000000adcd471c60b9dc56b5dc049e567106388fdf078f936a722b42edd230"
+            "85c0908500e8e467ffff001f28850000");
+        // Expected hash (big-endian, Electrum convention) from server.features
+        const QByteArray genesisHashExpected = ParseHexFast(
+            "000096bdd6e4613ca89b074ebd6f609aba6fe3f868b34ee79380aa3bc7a8c9db");
+        Log() << "Testing RinHash block 0 ...";
+        const auto genesisHash = BTC::HeaderHash(genesis);
+        if (genesisHash != genesisHashExpected)
+            throw Exception(QString("RinHash block 0 mismatch: got %1").arg(QString(genesisHash.toHex())));
+
+        // ---- Block 1 ------------------------------------------------------------
+        // hashPrevBlock in block 1 must equal the genesis hash
+        const QByteArray block1 = ParseHexFast(
+            "00000020dbc9a8c73baa8093e74eb368f8e36fba9a606fbd4e079ba83c61e4d6"
+            "bd960000902e3faad09b8f350a530702e126b19107be3218521dbf9eb5b394ca"
+            "40e11278d9ebe767ffff001fa1070100");
+        // Verify hashPrevBlock linkage (bytes 4-36, little-endian → reversed)
+        Log() << "Checking block 1 hashPrevBlock linkage ...";
+        const QByteArray block1PrevRev(block1.constData() + 4, 32); // LE
+        QByteArray block1Prev(block1PrevRev);
+        std::reverse(block1Prev.begin(), block1Prev.end()); // → BE
+        if (block1Prev != genesisHashExpected)
+            throw Exception("RinHash block 1 hashPrevBlock does not match genesis hash");
+
+        // Expected hash for block 1 (derived from block 2's hashPrevBlock)
+        const QByteArray block1HashExpected = ParseHexFast(
+            "00002adfb206d5d942abc963b93fa2edb479eb7b6f589f5318ddda5cd732ec19");
+        Log() << "Testing RinHash block 1 ...";
+        const auto block1Hash = BTC::HeaderHash(block1);
+        if (block1Hash != block1HashExpected)
+            throw Exception(QString("RinHash block 1 mismatch: got %1").arg(QString(block1Hash.toHex())));
+
+        // ---- HeaderHash vs. inline expansion equivalence -----------------------
+        // Verify that BTC::HeaderHash() produces the same result as the
+        // explicit BTC::Hash2ByteArrayRev(BTC::Deserialize<CBlockHeader>(..).GetHash())
+        Log() << "Verifying HeaderHash() == inline expansion ...";
+        const auto explicit0 = BTC::Hash2ByteArrayRev(
+            BTC::Deserialize<bitcoin::CBlockHeader>(genesis).GetHash());
+        if (explicit0 != genesisHash)
+            throw Exception("HeaderHash() helper does not match inline expansion for block 0");
+
+        Log(Log::BrightWhite) << "All rinhash unit tests passed!";
+    }
+
+    auto t2 = App::registerTest("rinhash", testRinHash);
 } // namespace
 #endif
