@@ -13,7 +13,7 @@ PACKAGE="$1"
 ROCKSDB_PACKAGE="$2"
 JEMALLOC_PACKAGE="$3"
 MINIUPNPC_PACKAGE="$4"
-TARGET_BINARY=Fulcrum
+TARGET_BINARY=fulcrum-rin
 
 top=/work
 cd "$top" || fail "Could not cd $top"
@@ -53,6 +53,20 @@ mkdir -p /tmp/include && cp -fpvra ../libzmq/include/* /tmp/include/. || fail "f
 popd > /dev/null
 printok "libzmq built and installed in /tmp"
 # /libzmq
+
+# argon2 (static)
+ARGON2_COMMIT=f57e61e19229e23c4445b85494dbf7c07de9201e  # 20190702 release
+info "Building libargon2 @ ${ARGON2_COMMIT} ..."
+pushd /tmp
+git clone https://github.com/P-H-C/phc-winner-argon2.git argon2 || fail "Could not clone libargon2"
+cd argon2 && git checkout "${ARGON2_COMMIT}" || fail "Could not checkout argon2 commit"
+make -j`nproc` OPTTARGET=none || fail "Could not build libargon2"
+make install PREFIX=/tmp || fail "Could not install libargon2"
+rm -vf /tmp/lib/libargon2.so*
+strip -g /tmp/lib/libargon2.a
+popd > /dev/null
+printok "libargon2 static library built and installed in /tmp/lib"
+# /argon2
 
 # jemalloc
 info "Running configure for jemalloc ..."
@@ -116,13 +130,14 @@ else
 fi
 qmake ../Fulcrum.pro "CONFIG-=debug" \
                      "CONFIG+=release" \
+                     "TARGET=fulcrum-rin" \
                      "${extra_libs}" \
                      "LIBS+=-L${ROCKSDB_LIBDIR} -lrocksdb" \
                      "LIBS+=-lz -lbz2" \
                      "INCLUDEPATH+=${ROCKSDB_INCDIR}" \
                      "LIBS+=-L${JEMALLOC_LIBDIR} -ljemalloc" \
                      "INCLUDEPATH+=${JEMALLOC_INCDIR}" \
-                     "LIBS+=-L/tmp/lib -lzmq -lminiupnpc" \
+                     "LIBS+=-L/tmp/lib -lzmq -lminiupnpc -largon2" \
                      "INCLUDEPATH+=/tmp/include" \
     || fail "Could not run qmake"
 make -j`nproc` || fail "Could not run make"
@@ -140,6 +155,8 @@ printok "$TARGET_BINARY built"
 info "Copying to top level ..."
 mkdir -p "$top/built" || fail "Could not create build products directory"
 cp -fpva "$TARGET_BINARY" "$top/built/." || fail "Could not copy $TARGET_BINARY"
+cp -fpva "$top/$PACKAGE/FulcrumAdmin" "$top/built/fulcrum-admin-rin" || fail "Could not copy FulcrumAdmin"
+chmod +x "$top/built/fulcrum-admin-rin"
 cd "$top" || fail "Could not cd to $top"
 
 printok "Inner _build.sh finished"

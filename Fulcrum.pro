@@ -40,6 +40,8 @@ versionAtLeast(QT_VERSION, 6.5.0) {
 CONFIG += console warn_on
 CONFIG -= app_bundle
 
+TARGET = fulcrum-rin
+
 versionAtMost(QT_VERSION, 5.15.1) {
     error("Fulcrum requires Qt 5.15.2 (or later) to be successfully built without errors.  Please use Qt 5.15.2+ to build this codebase.")
 }
@@ -300,11 +302,11 @@ contains(CONFIG, config_builtin_bswap) {
     }
     linux {
         LIBS += -lrocksdb -lz -lbz2
-        LIBS += -largon2
+        LIBS += -l:libargon2.a
     }
     freebsd {
         LIBS += -lrocksdb -lz -lbz2
-        LIBS += -largon2
+        LIBS += -l:libargon2.a
     }
     win32 {
         LIBS += -lrocksdb
