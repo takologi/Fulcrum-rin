@@ -303,9 +303,9 @@ void BitcoinDMgr::refreshBitcoinDNetworkInfo()
                 };
                 // Set up RpcSupportInfo
                 auto & rsi = bitcoinDInfo.rpcSupportInfo;
-                rsi.isZeroArgEstimateFee = !res.isCore && !res.isLTC && isZeroArgEstimateFee(bitcoinDInfo.version, bitcoinDInfo.subversion);
-                rsi.hasEstimateSmartFee = (res.isCore || res.isLTC) && bitcoinDInfo.version >= Version{0, 15, 0};
-                rsi.isTwoArgEstimateSmartFee = (res.isCore && bitcoinDInfo.version >= Version{0, 16, 0}) || (res.isLTC && bitcoinDInfo.version >= Version{0, 15, 0});
+                rsi.isZeroArgEstimateFee = !res.isCore && !res.isLTC && !res.isRIN && isZeroArgEstimateFee(bitcoinDInfo.version, bitcoinDInfo.subversion);
+                rsi.hasEstimateSmartFee = (res.isCore || res.isLTC || res.isRIN) && bitcoinDInfo.version >= Version{0, 15, 0};
+                rsi.isTwoArgEstimateSmartFee = (res.isCore && bitcoinDInfo.version >= Version{0, 16, 0}) || (res.isLTC && bitcoinDInfo.version >= Version{0, 15, 0}) || (res.isRIN && bitcoinDInfo.version >= Version{0, 16, 0});
                 // Implementations known to lack `getzmqnotifications`:
                 // - bchd (all versions)
                 // - BU before version 1.9.1.0
