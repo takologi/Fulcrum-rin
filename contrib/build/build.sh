@@ -190,7 +190,7 @@ docker run $arch_arg --rm -it -v "$workdir":/work${osxfs_option} \
 # since they were created by the root-running container and cannot be deleted
 # by an unprivileged host user.
 (mkdir -p "$outdir" && cp -fpva "$workdir"/built/* "$outdir"/. \
-    && docker run $arch_arg --rm -v "$workdir":/work "$docker_img_name" sh -c "find /work -mindepth 1 -delete" \
+    && docker run --rm -v "$workdir":/work alpine sh -c "find /work -mindepth 1 -delete" \
     && rm -fr "$workdir") \
     || fail "Could not clean up and move build products"
 
