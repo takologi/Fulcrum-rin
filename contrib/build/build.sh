@@ -83,7 +83,7 @@ outdir=`pwd`/../../../dist/${plat}${suffix}
 # Clean up old workdir; Docker creates root-owned files so use a throwaway
 # container to wipe them if a plain rm fails.
 if [ -d "$workdir" ]; then
-    docker run --rm -v "$workdir":/work alpine sh -c "rm -rf /work/." \
+    docker run --rm -v "$workdir":/work alpine sh -c "find /work -mindepth 1 -delete" \
         || fail "Could not remove old workdir. Try: sudo rm -rf \"$workdir\""
     rm -fr "$workdir"
 fi
@@ -190,7 +190,7 @@ docker run $arch_arg --rm -it -v "$workdir":/work${osxfs_option} \
 # since they were created by the root-running container and cannot be deleted
 # by an unprivileged host user.
 (mkdir -p "$outdir" && cp -fpva "$workdir"/built/* "$outdir"/. \
-    && docker run $arch_arg --rm -v "$workdir":/work "$docker_img_name" rm -rf /work/. \
+    && docker run $arch_arg --rm -v "$workdir":/work "$docker_img_name" sh -c "find /work -mindepth 1 -delete" \
     && rm -fr "$workdir") \
     || fail "Could not clean up and move build products"
 
