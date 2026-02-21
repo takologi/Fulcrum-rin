@@ -183,7 +183,7 @@ fi
 
 which git > /dev/null || fail "Git is required to proceed"
 
-DEFAULT_GIT_REPO=https://github.com/cculianu/Fulcrum.git
+DEFAULT_GIT_REPO=https://github.com/takologi/Fulcrum-rin.git
 if [ -z "$GIT_REPO" ] ; then
     # If no override from env is present, use default. Support for overrides
     # for the GIT_REPO has been added to allows contributors to test containers
@@ -197,7 +197,7 @@ if [ "$GIT_REPO" != "$DEFAULT_GIT_REPO" ]; then
     info "Picked up override from env: GIT_REPO=${GIT_REPO}"
 fi
 GIT_DIR_NAME=`basename $GIT_REPO .git`
-PACKAGE=${PACKAGE:-Fulcrum}  # Modify this if you like
+PACKAGE=${PACKAGE:-Fulcrum-rin}  # Modify this if you like
 
 
 SHA256_PROG=`which sha256sum || which gsha256sum`

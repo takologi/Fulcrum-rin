@@ -180,7 +180,12 @@ docker run $arch_arg --rm -it -v "$workdir":/work${osxfs_option} \
     --name "$docker_cont_name" \
     "$docker_img_name" /work/"$PACKAGE"/contrib/build/${plat}/_build.sh "$PACKAGE" "$ROCKSDB_PACKAGE" "$JEMALLOC_PACKAGE" "$MINIUPNPC_PACKAGE" "$DEBUG_BUILD"
 
-(mkdir -p "$outdir" && cp -fpva "$workdir"/built/* "$outdir"/. && rm -fr "$workdir") \
+# Clean up: root-owned files inside workdir must be removed from inside docker
+# since they were created by the root-running container and cannot be deleted
+# by an unprivileged host user.
+(mkdir -p "$outdir" && cp -fpva "$workdir"/built/* "$outdir"/. \
+    && docker run $arch_arg --rm -v "$workdir":/work "$docker_img_name" rm -rf /work/. \
+    && rm -fr "$workdir") \
     || fail "Could not clean up and move build products"
 
 cd ../../../ || fail "Could not chdir to the top level"
