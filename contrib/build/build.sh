@@ -80,7 +80,13 @@ dockerfile=Dockerfile${suffix}
 cd "$here"/"$plat"
 workdir=`pwd`/work${suffix}
 outdir=`pwd`/../../../dist/${plat}${suffix}
-rm -fr "$workdir"
+# Clean up old workdir; Docker creates root-owned files so use a throwaway
+# container to wipe them if a plain rm fails.
+if [ -d "$workdir" ]; then
+    docker run --rm -v "$workdir":/work alpine sh -c "rm -rf /work/." \
+        || fail "Could not remove old workdir. Try: sudo rm -rf \"$workdir\""
+    rm -fr "$workdir"
+fi
 mkdir -p "$workdir"
 pushd "$workdir" 1> /dev/null
 

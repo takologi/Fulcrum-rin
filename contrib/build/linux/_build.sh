@@ -62,7 +62,13 @@ git clone https://github.com/P-H-C/phc-winner-argon2.git argon2 || fail "Could n
 cd argon2 && git checkout "${ARGON2_COMMIT}" || fail "Could not checkout argon2 commit"
 make -j`nproc` OPTTARGET=none || fail "Could not build libargon2"
 make install PREFIX=/tmp || fail "Could not install libargon2"
-rm -vf /tmp/lib/libargon2.so*
+# argon2 installs into a multiarch subdir (e.g. /tmp/lib/x86_64-linux-gnu/);
+# remove shared libs and copy the static archive to /tmp/lib/ so the
+# existing -L/tmp/lib linker flag finds it.
+find /tmp/lib -name 'libargon2.so*' -delete
+ARGON2_A="$(find /tmp/lib -name 'libargon2.a' | head -1)"
+[ -n "$ARGON2_A" ] || fail "libargon2.a not found after install"
+cp "$ARGON2_A" /tmp/lib/libargon2.a
 strip -g /tmp/lib/libargon2.a
 popd > /dev/null
 printok "libargon2 static library built and installed in /tmp/lib"
