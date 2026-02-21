@@ -55,7 +55,7 @@ printok "libzmq built and installed in /tmp"
 # /libzmq
 
 # argon2 (static)
-ARGON2_COMMIT=f57e61e19229e23c4445b85494dbf7c07de9201e  # 20190702 release
+ARGON2_COMMIT=f57e61e19229e23c4445b85494dbf7c07de721cb  # master / 20190702 release
 info "Building libargon2 @ ${ARGON2_COMMIT} ..."
 pushd /tmp
 git clone https://github.com/P-H-C/phc-winner-argon2.git argon2 || fail "Could not clone libargon2"
