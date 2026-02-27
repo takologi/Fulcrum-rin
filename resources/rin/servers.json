@@ -1,0 +1,12 @@
+{
+    "peer1.rincoin.net": {
+        "pruning": "-",
+        "s": "50002",
+        "version": "1.4"
+    },
+    "peer2.rincoin.net": {
+        "pruning": "-",
+        "s": "50002",
+        "version": "1.4"
+    }
+}

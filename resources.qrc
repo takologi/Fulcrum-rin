@@ -10,5 +10,6 @@
         <file>resources/btc/servers_testnet4.json</file>
         <file>resources/ltc/servers.json</file>
         <file>resources/ltc/servers_testnet.json</file>
+        <file>resources/rin/servers.json</file>
     </qresource>
 </RCC>
