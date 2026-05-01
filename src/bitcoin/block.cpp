@@ -20,8 +20,19 @@ uint256 CBlockHeader::GetHash() const {
     // Add a new branch here when adding support for a coin with a custom hash algorithm.
     const auto &unit = GetCurrencyUnit();
     if (unit == "RIN") {
-        // Rincoin: BLAKE3 -> Argon2d -> SHA3-256
-        return RinHash(*this);
+        // Rincoin: BLAKE3 -> Argon2d -> SHA3-256.
+        // RinHash() can throw on libargon2 failure (e.g. allocator error). Catch here
+        // so that a transient failure in a single header does not abort the server;
+        // return an all-zeroes hash so any chain-linkage check (hashPrevBlock) fails
+        // and the caller treats the header as invalid rather than crashing.
+        try {
+            return RinHash(*this);
+        } catch (const std::exception &e) {
+            // Note: a zeroed uint256 is the same value used by the genesis prev-hash;
+            // any non-genesis context will refuse this as a chain link.
+            (void)e; // logger is not available in this translation unit
+            return uint256();
+        }
     } else if (unit == "BTC") {
         // Bitcoin Core / Bitcoin Knots: SHA256d
         return SerializeHash(*this);

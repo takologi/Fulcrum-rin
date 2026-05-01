@@ -12,6 +12,7 @@
 #include "blake3/blake3.h"
 #include "sha3.h"
 
+#include <cstring>
 #include <span>
 #include <stdexcept>
 #include <vector>
@@ -30,15 +31,17 @@ uint256 RinHash(const CBlockHeader& block)
     blake3_hasher_update(&blake_hasher, input.data(), input.size());
     blake3_hasher_finalize(&blake_hasher, blake3_out, sizeof(blake3_out));
 
-    static constexpr char salt_str[] = "RinCoinSalt";
+    // Static consensus salt as raw bytes — avoids reinterpret_cast/const_cast
+    // and makes the byte sequence explicit for cross-implementation review.
+    static constexpr uint8_t salt_bytes[] = {'R','i','n','C','o','i','n','S','a','l','t'};
     uint8_t argon2_out[32];
     argon2_context context = {};
     context.out = argon2_out;
     context.outlen = sizeof(argon2_out);
     context.pwd = blake3_out;
     context.pwdlen = sizeof(blake3_out);
-    context.salt = reinterpret_cast<uint8_t *>(const_cast<char *>(salt_str));
-    context.saltlen = std::strlen(salt_str);
+    context.salt = const_cast<uint8_t *>(salt_bytes);
+    context.saltlen = sizeof(salt_bytes);
     context.t_cost = 2;
     context.m_cost = 64;
     context.lanes = 1;
