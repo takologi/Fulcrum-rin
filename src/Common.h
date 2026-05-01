@@ -59,7 +59,16 @@ struct BadArgs : Exception { using Exception::Exception; ~BadArgs() override; };
 /// Fork identifier appended to the admin banner and startup log.
 /// Keeps APPNAME unchanged so Electrum protocol strings stay compatible.
 #define FORK_NAME "Fulcrum-RIN"
-#define VERSION "2.1.0"
+/// Fork version. Scheme: "<upstream-baseline>-rin.<fork-release-counter>".
+/// Bump the rin.N counter on every fork-only release. When a new upstream
+/// baseline is merged, advance the upstream-baseline component AND reset the
+/// rin.N counter back to 1 (e.g. "2.1.1-rin.1").
+#define VERSION "2.1.0-rin.2"
+/// Upstream cculianu/Fulcrum version this fork is currently rebased on.
+/// Update on every upstream merge so the server.version banner exposes the
+/// upstream baseline; this lets downstream wallet UAs and CVE triage map
+/// vulnerabilities to the correct upstream advisory.
+#define UPSTREAM_VERSION "2.1.0"
 #ifdef QT_DEBUG
 inline constexpr bool isReleaseBuild() { return false; }
 #else

@@ -72,3 +72,9 @@ Thumbs.db
 *.dll
 *.exe
 Fulcrum
+fulcrum-rin
+
+# Build / dist artifacts
+/dist/
+/build/
+/contrib/rinhash_trace

@@ -345,6 +345,14 @@ namespace {
         if (explicit0 != genesisHash)
             throw Exception("HeaderHash() helper does not match inline expansion for block 0");
 
+        // TODO: add at least one mid-chain block vector (e.g. post-first-retarget)
+        // and one post-difficulty-step block vector. These are the highest-value
+        // regression anchors against silent libargon2 ABI changes when distros
+        // bump the package. Source the raw 80-byte header via
+        //   blockchain.block.header(<height>)
+        // on a trusted Fulcrum-RIN node, and the expected hash via
+        //   blockchain.block.header(<height+1>)  -> hashPrevBlock (reversed).
+
         Log(Log::BrightWhite) << "All rinhash unit tests passed!";
     }
 
