@@ -175,14 +175,14 @@ popd 1> /dev/null
 cd "${workdir}/${PACKAGE}/contrib/build/${plat}" || fail "Could not chdir to Dockerfile directory"
 [ -e "$dockerfile" ] || fail "Could not find $dockerfile in $(pwd)"
 info "Creating docker image: $docker_img_name ..."
-docker build $arch_arg -t "$docker_img_name" - < "$dockerfile" \
+docker build --network=host $arch_arg -t "$docker_img_name" - < "$dockerfile" \
   || fail "Could not build docker image. Check that docker is installed and that you can run docker without sudo on this system."
 printok "Docker image created: $docker_img_name"
 
 # Run _build.sh from the specified commit inside Docker image, with $workdir (usually ./work) mapped to /work
 cd "$workdir/.." || fail "Could not chdir"
 info "Building inside docker container: $docker_cont_name ($docker_img_name) ..."
-docker run $arch_arg --rm -it -v "$workdir":/work${osxfs_option} \
+docker run --network=host $arch_arg --rm -it -v "$workdir":/work${osxfs_option} \
     --name "$docker_cont_name" \
     "$docker_img_name" /work/"$PACKAGE"/contrib/build/${plat}/_build.sh "$PACKAGE" "$ROCKSDB_PACKAGE" "$JEMALLOC_PACKAGE" "$MINIUPNPC_PACKAGE" "$DEBUG_BUILD"
 
