@@ -381,6 +381,7 @@ SOURCES += \
     Servers.cpp \
     SrvMgr.cpp \
     Storage.cpp \
+    Storage/Compat.cpp \
     Storage/ConcatOperator.cpp \
     Storage/DBRecordArray.cpp \
     Storage/RecordFile.cpp \
@@ -433,6 +434,7 @@ HEADERS += \
     Span.h \
     SrvMgr.h \
     Storage.h \
+    Storage/Compat.h \
     Storage/ConcatOperator.h \
     Storage/DBRecordArray.h \
     Storage/RecordFile.h \
