@@ -44,7 +44,7 @@ Electrum-specific values still needed before implementation:
 - Electrum server default TCP/SSL ports for Rincoin
 - Genesis hash(es) to embed for server validation
 - Checkpoint strategy and source (Fulcrum / Core)
-- BIP44 coin type policy
+- BIP44 coin type: **`9555` (registered SLIP-0044, `0x80002553`)** — settled
 - xpub/xprv version policy (reuse or custom)
 
 ## 4) Phased execution plan with test gates
@@ -131,29 +131,36 @@ Minimum CI jobs:
 | Wallet product name | **Electrum-RIN** | 2026-02-19 |
 | Phase 1 platforms | **Linux desktop + Windows desktop** | 2026-02-19 |
 | Default Electrum ports | **50001 (TCP) / 50002 (SSL)** | 2026-02-19 |
-| BIP44 derivation | **Placeholder `9555` (Rincoin p2p port) used during development — obvious sentinel that flags unregistered status in any wallet dump. MUST be replaced with SLIP-0044 registered value before first public release.** | 2026-02-19 |
+| BIP44 derivation | **`9555` — registered SLIP-0044 coin type for RIN / Rincoin** (`0x80002553`). The value originally chosen as a placeholder (Rincoin's p2p port) was accepted as the registered number, so no migration is required. | 2026-05-01 |
 | xpub/xprv version bytes | **Reuse standard BTC bytes (0x0488B21E / 0x0488ADE4)** — already set in Rincoin Core chainparams | 2026-02-19 |
 
-### BIP44 migration warning
+### BIP44 derivation — registered status
 
-**Code reference:** `electrum/constants.py` — `AbstractNet.BIP44_COIN_TYPE` declaration and the `TODO(rincoin-phase1)` stub block for `RincoinMainnet`.
+**Status: REGISTERED.** Coin type `9555` is the official SLIP-0044 entry for RIN / Rincoin
+(see [satoshilabs/slips slip-0044.md](https://github.com/satoshilabs/slips/blob/master/slip-0044.md),
+row `9555 | 0x80002553 | RIN | Rincoin`). The number `9555` was originally selected as a
+conspicuous placeholder during early Electrum-RIN development; it was accepted as the
+registered value, so all derivation paths under `m/44'/9555'/...` and `m/84'/9555'/...`
+are now permanent and standards-compliant. No wallet migration is required.
 
-The placeholder value `9555` (Rincoin's p2p port) is intentionally conspicuous so that any wallet
-file, seed dump, or log that shows the derivation path immediately reveals it is pre-registration:
-`m/44'/9555'/...` and `m/84'/9555'/...` are not used by any real SLIP-0044 entry, guaranteeing no
-overlap with existing coins during development.
+**Code reference:** `electrum/constants.py` — `AbstractNet.BIP44_COIN_TYPE = 9555` for
+`RincoinMainnet`. The historical `TODO(rincoin-phase1)` marker may be removed once the
+constant is finalized in code.
 
-After SLIP-0044 registration:
+`m/44'/9555'/...` (legacy P2PKH) and `m/84'/9555'/...` (native SegWit / bech32) are the
+canonical derivation paths for Rincoin. Hardware wallets, third-party explorers, and any
+future multi-currency wallet integrating Rincoin should use `9555` (`0x80002553` hardened).
 
-1. Replace every occurrence of `9555` in `constants.py` with the registered number.
-2. Add a one-time seed migration helper if wallets were distributed with the placeholder (unlikely if done before first release).
-3. Record the registered value in this manual and in `electrum/constants.py`.
+Downstream housekeeping (one-time):
+
+1. Remove the `TODO(rincoin-phase1)` marker around the `BIP44_COIN_TYPE` declaration in `electrum/constants.py`.
+2. Reflect the registered status in any release notes that previously warned about the placeholder.
+3. No seed-migration helper is needed — the placeholder and the registered value are identical.
 
 ## 7) Open questions log (still to resolve)
 
 1. Official server seed list and operator trust model
 2. Hardware-wallet support in phase 1: include or defer
-3. Rincoin SLIP-0044 coin type number (pending registration)
 
 ## 8) Change log for this manual
 
@@ -164,3 +171,4 @@ After SLIP-0044 registration:
 - 2026-02-19: **Phase 1 gate PASSED** (`10375421e`) — `RincoinMainnet/Testnet/Regtest` classes + chains/ files committed. Genesis hash `000096bd…` confirmed via Fulcrum `server.features`. 338 tests pass.
 - 2026-02-19: **Phase 2 gate PASSED** (`5e3a122`) — 35 address/script/scripthash test vectors all green. P2PKH="R", P2SH="r", bech32="rin1", WIF=0xbc, scripthash matches Fulcrum convention, cross-network isolation verified.
 - 2026-02-19: **Phase 3 gate PASSED** (`99b0f249`) — 11 Fulcrum integration tests pass; genesis header bytes verified against live server; skip guard for offline CI.
+- 2026-05-01: **SLIP-0044 registration confirmed** — coin type `9555` (`0x80002553`) accepted as the official entry for `RIN` / Rincoin in [satoshilabs/slips slip-0044.md](https://github.com/satoshilabs/slips/blob/master/slip-0044.md). The originally chosen placeholder value matches the registered value, so no derivation-path migration is required. BIP44 migration warning removed; `m/44'/9555'/...` and `m/84'/9555'/...` are now permanent.
