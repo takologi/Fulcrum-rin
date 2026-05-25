@@ -45,11 +45,50 @@ GPLv3. See the included `LICENSE.txt` file or [visit gnu.org and read the licens
     - *Optional*: For best results, enable zmq for the "hasblock" topic using e.g. `zmqpubhashblock=tcp://0.0.0.0:8433` in your `bitcoin.conf` file (zmq is only available on: Core, BCHN, BU 1.9.1+, or Litecoin Core).
   - *Recommended hardware*: Minimum 1GB RAM, 64-bit CPU, ~40GB disk space for mainnet BCH, 133GB for BTC (as of Aug 2023). For best results, use an SSD rather than an HDD.
 - *For compiling*: 
-  - `Qt Core` & `Qt Networking` libraries `5.15.2` or above (I use `6.10.0` myself).  Qt `5.15.1` (or earlier) is not supported.
+  - `Qt Core` & `Qt Networking` libraries `5.15.2` or above (Fulcrum-RIN release builds use `Qt 5.15.8`; upstream tests with `6.10.0`).  Qt `5.15.1` (or earlier) is not supported.
+  - `libargon2` development headers and library (`libargon2-dev` on Debian/Ubuntu, `libargon2-devel` on Fedora) — **required by RinHash**. Tested against libargon2 `20171227`.
   - *Optional but recommended*:
-    - `libzmq 4.x` development headers and library (also known as `libzmq3-dev` on Debian/Ubuntu and `zeromq-devel` on Fedora). Fulcrum will run just fine without linking against `libzmq`, but it will run better if you do link against `libzmq` and also turn on `zmqpubhashblock` notifications in `bitcoind` (zmq is only available on: Core, BCHN, or BU 1.9.1+).
+    - `libzmq 4.x` development headers and library (also known as `libzmq3-dev` on Debian/Ubuntu and `zeromq-devel` on Fedora). Fulcrum will run just fine without linking against `libzmq`, but it will run better if you do link against `libzmq` and also turn on `zmqpubhashblock` notifications in `bitcoind` (zmq is only available on: Core, BCHN, BU 1.9.1+, Litecoin Core, or Rincoin Core).
     - `libminiupnpc 2.x/3.x` development headers and library (also known as `libminiupnpc-dev` on Debuan/Ubuntu and `miniupnpc-devel` on Fedora). Fulcrum will run just fine without this library, but it is needed if you want Fulcrum to use UPnP to open up firewall ports on your router (CLI arg: `--upnp`, conf var: `upnp=true`).
-  - A modern, 64-bit `C++20` compiler.  `clang-17` or `g++-13` are recommended. MSVC on Windows is not supported (please use `MinGW G++` instead, which ships with Qt Open Source Edition for Windows).
+  - A modern, 64-bit `C++20` compiler.  `clang-17` or `g++-13` are recommended (Fulcrum-RIN release builds use `gcc 12.2.0`, which also works). MSVC on Windows is not supported (please use `MinGW G++` instead, which ships with Qt Open Source Edition for Windows).
+
+### Runtime dependencies (dynamically-linked builds)
+
+The binaries built by Fulcrum-RIN's native Linux build script (`qmake && make`)
+are **dynamically linked** against system Qt, libzmq and OpenSSL. If you
+copy the binary to another host, install these system packages first.
+Skip this section if you use a fully-static binary from the [releases
+page](https://github.com/takologi/Fulcrum-rin/releases) — those bundle Qt,
+rocksdb, jemalloc and friends and only need glibc.
+
+**Debian / Ubuntu** (Debian 12/13, Ubuntu 22.04/24.04):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+    libqt5network5 libqt5core5a \
+    libzmq5 \
+    libbz2-1.0 zlib1g
+```
+
+- All transitive crypto / TLS dependencies (`libssl`, `libcrypto`, `libsodium`, `libgssapi-krb5`, `libicu`, etc.) are pulled in automatically as dependencies of `libqt5network5` and `libzmq5`.
+- `libargon2` is **statically linked** into `fulcrum-rin`, so no runtime package is needed for it.
+- If you also want UPnP, add `libminiupnpc17` (or whatever your distro names the runtime soname of libminiupnpc).
+- On Debian 13 Qt 5 is no longer the default toolkit but the `libqt5*` packages remain installable from the main archive.
+
+**Fedora / RHEL / Rocky / Alma**:
+
+```bash
+sudo dnf install -y qt5-qtbase qt5-qtbase zeromq bzip2-libs zlib
+```
+
+**Diagnose missing libraries on the target host**:
+
+```bash
+ldd ./fulcrum-rin | grep -E "not found|=>"
+```
+
+Anything reporting `not found` is a missing package on that machine.
 
 ### Quickstart
 
@@ -67,9 +106,11 @@ bitcoind  = 127.0.0.1:9556   # rincoind default RPC port
 rpcuser   = rinuser
 rpcpassword = your_rpcpassword
 coin      = RIN
-tcp       = 0.0.0.0:50001
+#tcp       = 0.0.0.0:50001  # insecure - not recommended to open
 ssl       = 0.0.0.0:50002
-cert      = /etc/fulcrum-rin/server-cert.pem
+#ws        = 0.0.0.0:50003  # insecure - not recommended to open
+wss       = 0.0.0.0:50004
+cert      = /etc/fulcrum-rin/server-cert.pem  # get real SSL certs, e.g. from Letsencrypt
 key       = /etc/fulcrum-rin/server-key.pem
 ```
 
@@ -93,7 +134,7 @@ You may also build from the CLI (on Linux and MacOS):
 2. `qmake` (to generate the Makefile)
 3. `make -j8`  (replace 8 here with the number of cores on your machine)
 
-**A note for Linux users**: You may have to install the Qt5 or Qt6 networking package separately such as `libqt5network5` or `libqt6network6` (depending on your distribution). You also need `libbz2-dev` otherwise compilation will fail. If you are having trouble finding the required Qt versions, you can try this link: https://launchpad.net/~beineri (for Ubuntu/Debian ppas). For best results, you may wish to also ensure you have the following installed: `pkg-config`, `libzmq` (aka `libzmq3-dev` on Debian/Ubuntu, `zeromq-devel` on Fedora), and `libminiupnpc` (aka `libminiupnpc-dev` on Debian/Ubuntu, `miniupnpc-devel` on Fedora).
+**A note for Linux users**: You may have to install the Qt5 or Qt6 networking package separately such as `libqt5network5` or `libqt6network6` (depending on your distribution). You also need `libbz2-dev` and `libargon2-dev` otherwise compilation will fail. If you are having trouble finding the required Qt versions, you can try this link: https://launchpad.net/~beineri (for Ubuntu/Debian ppas). For best results, you may wish to also ensure you have the following installed: `pkg-config`, `libzmq` (aka `libzmq3-dev` on Debian/Ubuntu, `zeromq-devel` on Fedora), and `libminiupnpc` (aka `libminiupnpc-dev` on Debian/Ubuntu, `miniupnpc-devel` on Fedora).
 
 **A note for Windows users**: `Qt 5.15.2` (or above) with `MinGW G++ 11.x.x` (or above) is the compiler/Qt kit you should be using.  MSVC is not supported by this codebase at the present time.
 
@@ -256,7 +297,15 @@ Everything should just work (I use MacOS as my dev machine).
 
 ---
 
-### Donations
+## Donations - Fulcrum-RIN
+
+#### If you like it, let me buy a coffee by sending **BTC** here
+**`bitcoin:`** TO-DO add BTC address for donations
+
+### Sponsors - Rincoin
+* none so far ...
+
+## Donations - Fulcrum upstream
 
 #### Sure!  Send **BCH** here:
 

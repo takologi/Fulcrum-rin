@@ -1,12 +1,17 @@
 {
-    "peer1.rincoin.net": {
+    "peer1.rincoin.tech": {
         "pruning": "-",
         "s": "50002",
-        "version": "1.4"
+        "version": "1.4.2"
     },
-    "peer2.rincoin.net": {
+    "peer2.rincoin.tech": {
         "pruning": "-",
         "s": "50002",
-        "version": "1.4"
+        "version": "1.4.2"
+    },
+    "peer3.rincoin.tech": {
+        "pruning": "-",
+        "s": "50002",
+        "version": "1.4.2"
     }
 }
