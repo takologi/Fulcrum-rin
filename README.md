@@ -301,7 +301,7 @@ Everything should just work (I use MacOS as my dev machine).
 
 #### If you like the Rincoin implementation, let me buy a coffee by sending **BTC** here
 
-**`bitcoin:BC1QEMEP8YDPCCVE2UN6VDN0MKNNQGFPQHMTW0LKWP`** TO-DO add BTC address for donations
+**[![bitcoin:BC1QEMEP8YDPCCVE2UN6VDN0MKNNQGFPQHMTW0LKWP](https://raw.githubusercontent.com/takologi/Fulcrum-RIN/master/doc/img/Fulcrum-RIN_donate.png)](bitcoin:BC1QEMEP8YDPCCVE2UN6VDN0MKNNQGFPQHMTW0LKWP)
 
 I'm not doing this for money. But there's always lack of coffee ;-)
 
