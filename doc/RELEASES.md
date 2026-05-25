@@ -18,6 +18,46 @@ corresponding Fulcrum-RIN build.
 
 ---
 
+## 2.1.1-rin.1 — 2026-05-25
+
+Upstream baseline: Fulcrum **2.1.1** (commit `4b38a75`, tag `v2.1.1`).
+
+Pure upstream-sync release. Pulled 10 commits from `cculianu/Fulcrum`
+between `8d8453d` (the previous baseline) and `4b38a75`. No fork-side
+code changes; only documentation, build-script and config additions on
+top of the merge.
+
+### Upstream changes pulled
+
+- Bumped to upstream tag **v2.1.1** (`f06d28f`).
+- BCHN sync for `bitcoin/token.h`; token-test extra check and minor C++
+  nits in `Mempool.cpp`, `BlockProc.cpp`, and `Storage/Compat.cpp`
+  (no behaviour change).
+- Windows build script: `wine64` → `wine`.
+- `electrum-cash-protocol` submodule bump.
+
+See `git log v2.1.0-rin.2..HEAD` for the full upstream commit list.
+
+### Fork-side documentation
+
+- README: new **Runtime dependencies** section with the exact `apt-get`
+  command (`libqt5network5 libqt5core5a libzmq5 libbz2-1.0 zlib1g`) and
+  Fedora/RHEL equivalent. Build-time deps updated to include
+  `libargon2-dev`. Library versions in the README now reflect the
+  release build matrix (Qt 5.15.8, gcc 12.2.0, etc.).
+- `doc/fulcrum-rin.conf`: top comment block points operators at the
+  same `apt-get` line.
+- `resources/rin/servers.json`: switched seed peers to
+  `peer{1,2,3}.rincoin.tech`, protocol version `1.4.2`.
+
+### Compatibility
+
+- Drop-in replacement for `2.1.0-rin.2`. No on-disk format change.
+- Electrum-protocol-visible banner is now
+  `Fulcrum-RIN 2.1.1-rin.1 (Fulcrum 2.1.1)`.
+
+---
+
 ## 2.1.0-rin.2 — 2026-05-01
 
 Upstream baseline: Fulcrum **2.1.0** (commit `8d8453d`).
